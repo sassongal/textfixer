@@ -1,0 +1,7 @@
+node_modules/
+dist/
+build/
+*.AppImage
+*.exe
+.DS_Store
+*.log

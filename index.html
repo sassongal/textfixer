@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'">
+    <title>TextFixer</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>TextFixer</h1>
+
+    <div class="container">
+        <div class="input-section">
+            <label for="inputText">Input Text:</label>
+            <textarea id="inputText" rows="10" cols="50"></textarea>
+        </div>
+
+        <div class="controls">
+            <button id="correctLayoutBtn">Correct Layout</button>
+            <button id="cleanTemplateBtn">Clean Template</button>
+            <div class="translation-controls">
+                <select id="translateFrom">
+                    <option value="en">English</option>
+                    <option value="he">Hebrew</option>
+                </select>
+                <span>to</span>
+                <select id="translateTo">
+                    <option value="he">Hebrew</option>
+                    <option value="en">English</option>
+                </select>
+                <button id="translateBtn">Translate</button>
+            </div>
+            <button id="expandTextBtn">Expand Text (GPT)</button>
+        </div>
+
+        <div class="output-section">
+            <label for="outputText">Output Text:</label>
+            <textarea id="outputText" rows="10" cols="50" readonly></textarea>
+        </div>
+
+        <div class="settings-section">
+            <label for="apiKey">OpenAI API Key:</label>
+            <input type="password" id="apiKey" placeholder="Enter your OpenAI API Key here">
+            <!-- Add more settings later as needed -->
+        </div>
+    </div>
+
+    <script src="./renderer.js"></script>
+</body>
+</html>
+
