@@ -1,14 +1,97 @@
-const { app, BrowserWindow, ipcMain } = require("electron");
+const { app, BrowserWindow, ipcMain, clipboard, globalShortcut } = require("electron");
 const path = require("path");
+const fs = require("fs");
 
-// Import utilities (assumes you have these modules ready)
 const { correctLayout } = require("./utils/keyboardLayout");
 const { cleanTemplateText } = require("./utils/textCleaner");
 const { translateText } = require("./utils/translator");
 const { expandTextWithGPT } = require("./utils/gptExpander");
 
-function createWindow () {
-  const mainWindow = new BrowserWindow({
+const configPath = path.join(__dirname, "config.json");
+let config = JSON.parse(fs.readFileSync(configPath, "utf8"));
+
+function registerShortcut() {
+  if (config.hotkeyEnabled && config.hotkey) {
+    globalShortcut.register(config.hotkey, () => {
+      const text = clipboard.readText();
+      const corrected = correctLayout(text);
+      console.log("📋 Original Clipboard:", text);
+      console.log("✅ Corrected:", corrected);
+      clipboard.writeText(corrected);
+    });
+  }
+}
+
+function unregisterShortcut() {
+  globalShortcut.unregisterAll();
+}
+
+ipcMain.handle("correct-layout", async (_, text) => {
+  try {
+    return correctLayout(text);
+  } catch (error) {
+    console.error("Layout Error:", error);
+    return { error: error.message || "Layout correction failed." };
+  }
+});
+
+ipcMain.handle("clean-template", async (_, text) => {
+  try {
+    return cleanTemplateText(text);
+  } catch (error) {
+    console.error("Clean Error:", error);
+    return { error: error.message || "Template cleaning failed." };
+  }
+});
+
+ipcMain.handle("translate-text", async (_, { text, sourceLang, targetLang }) => {
+  try {
+    return await translateText(text, sourceLang, targetLang);
+  } catch (error) {
+    console.error("Translate Error:", error);
+    return { error: error.message || "Translation failed." };
+  }
+});
+
+ipcMain.handle("expand-text", async (_, { text, apiKey }) => {
+  try {
+    return await expandTextWithGPT(text, apiKey);
+  } catch (error) {
+    console.error("Expand Error:", error);
+    return { error: error.message || "Expansion failed." };
+  }
+});
+
+ipcMain.handle("toggle-hotkey", async (_, enabled) => {
+  config.hotkeyEnabled = enabled;
+  fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
+  unregisterShortcut();
+      const registered = globalShortcut.isRegistered(config.hotkey);
+      console.log("🟢 Global Shortcut Registered:", registered, "(${config.hotkey})");
+  if (enabled) registerShortcut();
+      const registered = globalShortcut.isRegistered(config.hotkey);
+      console.log("🟢 Global Shortcut Registered:", registered, "(${config.hotkey})");
+});
+
+ipcMain.handle("set-hotkey", async (_, newHotkey) => {
+  config.hotkey = newHotkey;
+  fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
+  unregisterShortcut();
+      const registered = globalShortcut.isRegistered(config.hotkey);
+      console.log("🟢 Global Shortcut Registered:", registered, "(${config.hotkey})");
+  if (config.hotkeyEnabled) registerShortcut();
+      const registered = globalShortcut.isRegistered(config.hotkey);
+      console.log("🟢 Global Shortcut Registered:", registered, "(${config.hotkey})");
+});
+
+ipcMain.handle("toggle-autocorrect", async (_, enabled) => {
+  config.autocorrectEnabled = enabled;
+  fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
+  // (future: activate listener)
+});
+
+function createWindow() {
+  const win = new BrowserWindow({
     width: 800,
     height: 600,
     webPreferences: {
@@ -17,61 +100,17 @@ function createWindow () {
       nodeIntegration: false
     }
   });
-
-  mainWindow.loadFile("index.html");
+  win.loadFile("index.html");
 }
 
 app.whenReady().then(() => {
-  // Correct keyboard layout
-  ipcMain.handle("correct-layout", async (event, text) => {
-    try {
-      const correctedText = correctLayout(text);
-      return correctedText;
-    } catch (error) {
-      console.error("Error correcting layout:", error);
-      return { error: error.message || "Layout correction failed." };
-    }
-  });
-
-  // Clean templated text
-  ipcMain.handle("clean-template", async (event, text) => {
-    try {
-      const cleanedText = cleanTemplateText(text);
-      return cleanedText;
-    } catch (error) {
-      console.error("Error cleaning template text:", error);
-      return { error: error.message || "Template cleaning failed." };
-    }
-  });
-
-  // Translate text
-  ipcMain.handle("translate-text", async (event, { text, sourceLang, targetLang }) => {
-    try {
-      const translatedText = await translateText(text, sourceLang, targetLang);
-      return translatedText;
-    } catch (error) {
-      console.error("Error translating text:", error);
-      return { error: error.message || "Translation failed." };
-    }
-  });
-
-  // Expand text using GPT
-  ipcMain.handle("expand-text", async (event, { text, apiKey }) => {
-    try {
-      const expandedText = await expandTextWithGPT(text, apiKey);
-      return expandedText;
-    } catch (error) {
-      console.error("Error expanding text with GPT:", error);
-      return { error: error.message || "Text expansion failed." };
-    }
-  });
-
+  registerShortcut();
+      const registered = globalShortcut.isRegistered(config.hotkey);
+      console.log("🟢 Global Shortcut Registered:", registered, "(${config.hotkey})");
   createWindow();
-
-  app.on("activate", () => {
-    if (BrowserWindow.getAllWindows().length === 0) createWindow();
-  });
 });
+
+app.on("will-quit", () => unregisterShortcut());
 
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") app.quit();

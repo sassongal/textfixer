@@ -1,6 +1,5 @@
 const { contextBridge, ipcRenderer } = require("electron");
 
-// Expose selected IPC functions to the renderer process safely
 contextBridge.exposeInMainWorld("electronAPI", {
   correctLayout: (text) => ipcRenderer.invoke("correct-layout", text),
   cleanTemplate: (text) => ipcRenderer.invoke("clean-template", text),
@@ -10,4 +9,8 @@ contextBridge.exposeInMainWorld("electronAPI", {
     ipcRenderer.invoke("expand-text", { text, apiKey })
 });
 
-console.log("Preload script loaded.");
+contextBridge.exposeInMainWorld("settingsAPI", {
+  setHotkey: (hotkey) => ipcRenderer.invoke("set-hotkey", hotkey),
+  toggleHotkey: (enabled) => ipcRenderer.invoke("toggle-hotkey", enabled),
+  toggleAutocorrect: (enabled) => ipcRenderer.invoke("toggle-autocorrect", enabled)
+});
