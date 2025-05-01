@@ -66,10 +66,10 @@ ipcMain.handle("toggle-hotkey", async (_, enabled) => {
   config.hotkeyEnabled = enabled;
   fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
   unregisterShortcut();
-      const registered = globalShortcut.isRegistered(config.hotkey);
+console.log("🟢 Global Shortcut Registered:", globalShortcut.isRegistered(config.hotkey), `(${config.hotkey})`);
       console.log("🟢 Global Shortcut Registered:", registered, "(${config.hotkey})");
   if (enabled) registerShortcut();
-      const registered = globalShortcut.isRegistered(config.hotkey);
+console.log("🟢 Global Shortcut Registered:", globalShortcut.isRegistered(config.hotkey), `(${config.hotkey})`);
       console.log("🟢 Global Shortcut Registered:", registered, "(${config.hotkey})");
 });
 
@@ -77,10 +77,10 @@ ipcMain.handle("set-hotkey", async (_, newHotkey) => {
   config.hotkey = newHotkey;
   fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
   unregisterShortcut();
-      const registered = globalShortcut.isRegistered(config.hotkey);
+console.log("🟢 Global Shortcut Registered:", globalShortcut.isRegistered(config.hotkey), `(${config.hotkey})`);
       console.log("🟢 Global Shortcut Registered:", registered, "(${config.hotkey})");
   if (config.hotkeyEnabled) registerShortcut();
-      const registered = globalShortcut.isRegistered(config.hotkey);
+console.log("🟢 Global Shortcut Registered:", globalShortcut.isRegistered(config.hotkey), `(${config.hotkey})`);
       console.log("🟢 Global Shortcut Registered:", registered, "(${config.hotkey})");
 });
 
@@ -105,7 +105,7 @@ function createWindow() {
 
 app.whenReady().then(() => {
   registerShortcut();
-      const registered = globalShortcut.isRegistered(config.hotkey);
+console.log("🟢 Global Shortcut Registered:", globalShortcut.isRegistered(config.hotkey), `(${config.hotkey})`);
       console.log("🟢 Global Shortcut Registered:", registered, "(${config.hotkey})");
   createWindow();
 });
