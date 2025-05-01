@@ -1,37 +1,24 @@
-const fetch = require("node-fetch");
+const translate = require('@iamtraction/google-translate');
 
-const LIBRETRANSLATE_API_URL = "https://libretranslate.com/translate"; // Using the public instance
+function normalizeLang(lang) {
+    if (lang.toLowerCase() === "he") return "iw"; // old Google code for Hebrew
+    return lang.toLowerCase();
+}
 
 async function translateText(text, sourceLang, targetLang) {
-    if (!text) {
-        return "";
-    }
+    if (!text) return "";
 
     try {
-        const response = await fetch(LIBRETRANSLATE_API_URL, {
-            method: "POST",
-            body: JSON.stringify({
-                q: text,
-                source: sourceLang,
-                target: targetLang,
-                format: "text"
-            }),
-            headers: { "Content-Type": "application/json" }
+        const res = await translate(text, {
+            from: normalizeLang(sourceLang),
+            to: normalizeLang(targetLang)
         });
 
-        if (!response.ok) {
-            const errorData = await response.text();
-            console.error(`LibreTranslate API error: ${response.status} - ${errorData}`);
-            throw new Error(`Translation failed with status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        return data.translatedText;
+        return res.text;
     } catch (error) {
-        console.error("Error calling LibreTranslate API:", error);
-        throw error; // Re-throw the error to be caught by the IPC handler
+        console.error("Google Translate Error:", error);
+        throw new Error("Translation failed");
     }
 }
 
 module.exports = { translateText };
-

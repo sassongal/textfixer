@@ -1,43 +1,37 @@
-const enLayout = "`1234567890-=qwertyuiop[]\\asdfghjkl;\'zxcvbnm,./";
-const heLayout = "~1234567890-=/\][poiuytrewq\\;lkjhgfdsa\'.,mnbvcxz";
+// utils/keyboardLayout.js
 
-const enToHeMap = {};
-const heToEnMap = {};
-
-for (let i = 0; i < enLayout.length; i++) {
-    enToHeMap[enLayout[i]] = heLayout[i];
-    heToEnMap[heLayout[i]] = enLayout[i];
-}
-
-// Add shifted characters (basic example, might need refinement)
-const enShiftLayout = "~!@#$%^&*()_+QWERTYUIOP{}|ASDFGHJKL:\"ZXCVBNM<>?";
-const heShiftLayout = "`!@#$%^&*()_+QWERTYUIOP}{:\"LKJHGFDSA|><MNBVCXZ";
-
-for (let i = 0; i < enShiftLayout.length; i++) {
-    enToHeMap[enShiftLayout[i]] = heShiftLayout[i];
-    heToEnMap[heShiftLayout[i]] = enShiftLayout[i];
-}
-
-function isMostlyHebrew(text) {
-    let hebrewChars = 0;
-    for (let i = 0; i < text.length; i++) {
-        if (heLayout.includes(text[i]) || heShiftLayout.includes(text[i])) {
-            hebrewChars++;
-        }
-    }
-    // Simple heuristic: if more than half the chars are Hebrew layout keys
-    return hebrewChars > text.length / 2;
-}
-
-function correctLayout(text) {
-    let correctedText = "";
-    const targetMap = isMostlyHebrew(text) ? heToEnMap : enToHeMap;
-
-    for (let i = 0; i < text.length; i++) {
-        correctedText += targetMap[text[i]] || text[i]; // Keep original if no mapping found
-    }
-    return correctedText;
-}
-
-module.exports = { correctLayout };
-
+// מיפוי בין מקשים בפריסת מקלדת אנגלית לפריסת עברית רגילה (US -> IL)
+const enToHeMap = {
+    a: "ש", b: "נ", c: "ב", d: "ג", e: "ק", f: "כ", g: "ע",
+    h: "י", i: "ן", j: "ח", k: "ל", l: "ך", m: "צ", n: "מ",
+    o: "ם", p: "פ", q: "/", r: "ר", s: "ד", t: "א", u: "ו",
+    v: "ה", w: "'", x: "ס", y: "ט", z: "ז", "'": ",", ",": "ת",
+    ".": "ץ", ";": "ף", "[": "]", "]": "[", "\\": "\\", "`": ";",
+    "/": ".", "-": "-", "=": "=",
+    A: "ש", B: "נ", C: "ב", D: "ג", E: "ק", F: "כ", G: "ע",
+    H: "י", I: "ן", J: "ח", K: "ל", L: "ך", M: "צ", N: "מ",
+    O: "ם", P: "פ", Q: "/", R: "ר", S: "ד", T: "א", U: "ו",
+    V: "ה", W: "'", X: "ס", Y: "ט", Z: "ז"
+  };
+  
+  // יצירת המיפוי ההפוך: עברית → אנגלית
+  const heToEnMap = {};
+  Object.entries(enToHeMap).forEach(([en, he]) => {
+    heToEnMap[he] = en;
+  });
+  
+  // פונקציה לזיהוי אם הטקסט הוא בעיקר בעברית (מבוסס על Unicode)
+  function isMostlyHebrew(text) {
+    const hebrewCharRegex = /[\u0590-\u05FF]/;
+    const hebrewCount = [...text].filter(c => hebrewCharRegex.test(c)).length;
+    return hebrewCount > text.length / 2;
+  }
+  
+  // הפונקציה הראשית שמתקנת את הטקסט
+  function correctLayout(text) {
+    const map = isMostlyHebrew(text) ? heToEnMap : enToHeMap;
+    return [...text].map(char => map[char] || char).join('');
+  }
+  
+  module.exports = { correctLayout };
+  
